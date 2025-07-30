@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "DjangoProject7.settings")
 
 import django
+
 django.setup()
 
 from datetime import datetime, timedelta
@@ -18,18 +19,17 @@ from django.contrib.auth import authenticate, get_user_model
 
 from django_app.models import CustomUser
 
-# مدل کاربری
+
 User = get_user_model()
 
-# تنظیمات JWT
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 3
 
-# اپ FastAPI
+
 app = FastAPI()
 
-# CORS آزاد
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -37,14 +37,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ساخت توکن JWT
+
+
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# لاگین
+
+
 @app.post("/login")
 def login(email: str = Form(...), password: str = Form(...)):
     try:
@@ -66,8 +68,9 @@ def login(email: str = Form(...), password: str = Form(...)):
     token = create_access_token(data=payload)
     return {"access_token": token, "user": payload}
 
-# بررسی توکن
+
 security = HTTPBearer()
+
 
 def decode_jwt(token: str):
     try:
@@ -75,7 +78,8 @@ def decode_jwt(token: str):
     except Exception:
         return None
 
-# دریافت اطلاعات کاربر
+
+
 @app.get("/me")
 def get_me(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
@@ -84,11 +88,12 @@ def get_me(credentials: HTTPAuthorizationCredentials = Depends(security)):
         raise HTTPException(status_code=401, detail="Invalid token")
     return {"user": payload}
 
+
 @app.post("/signup")
 def signup(
-    email: str = Form(...),
-    username: str = Form(...),
-    password: str = Form(...)
+        email: str = Form(...),
+        username: str = Form(...),
+        password: str = Form(...)
 ):
     if CustomUser.objects.filter(email=email).exists():
         raise HTTPException(status_code=400, detail="Email already registered")

@@ -1,3 +1,9 @@
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject7.settings')
+django.setup()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastApi_app.routers import user_router, admin_router, superadmin_router
