@@ -1,7 +1,13 @@
 import os
 import sys
-from datetime import datetime, timedelta
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "DjangoProject7.settings")
+
+import django
+django.setup()
+
+from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -11,13 +17,6 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 
 from django_app.models import CustomUser
-
-# اتصال به Django
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "DjangoProject4.settings")
-
-import django
-django.setup()
 
 # مدل کاربری
 User = get_user_model()
@@ -91,22 +90,19 @@ def signup(
     username: str = Form(...),
     password: str = Form(...)
 ):
-    if User.objects.filter(email=email).exists():
-        raise HTTPException(status_code=400, detail="Email already in use")
+    if CustomUser.objects.filter(email=email).exists():
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-    if User.objects.filter(username=username).exists():
-        raise HTTPException(status_code=400, detail="Username already in use")
+    if CustomUser.objects.filter(username=username).exists():
+        raise HTTPException(status_code=400, detail="Username already taken")
 
-    user = User.objects.create_user(
+    user = CustomUser.objects.create_user(
         username=username,
         email=email,
         password=password
     )
-    user.role = "user"  # مقدار پیش‌فرض برای نقش
+    user.role = "user"
     user.save()
-
-    # ساخت پروفایل برای کاربر
-    CustomUser.objects.create(user=user)
 
     payload = {
         "sub": str(user.id),
